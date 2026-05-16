@@ -1,0 +1,14 @@
+{
+  "name": "planeta-consciente-contact-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "contact-handler.mjs",
+  "description": "AWS Lambda function that receives the landing page contact form and sends an email through Amazon SES.",
+  "scripts": {
+    "package": "rm -f function.zip && npm ci --omit=dev && zip -r function.zip contact-handler.mjs package.json node_modules"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.668.0"
+  }
+}
