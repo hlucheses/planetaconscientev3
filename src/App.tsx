@@ -1,49 +1,34 @@
-import { useEffect } from "react";
-import { useLang } from "./contexts/LanguageContext";
-import { Navbar } from "./components/Navbar";
-import { Hero } from "./components/Hero";
-import { About } from "./components/About";
-import { WhatWeDo } from "./components/WhatWeDo";
-import { SDGs } from "./components/SDGs";
-import { Impact } from "./components/Impact";
-import { Projects } from "./components/Projects";
-import { TreePlanting } from "./components/TreePlanting";
-import { Volunteers } from "./components/Volunteers";
-import { Partners } from "./components/Partners";
-import { HowToParticipate } from "./components/HowToParticipate";
-import { ContactForm } from "./components/ContactForm";
-import { FinalCTA } from "./components/FinalCTA";
-import { Footer } from "./components/Footer";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RootLayout } from "./layout/RootLayout";
+import { HomePage } from "./pages/HomePage";
+import { AboutPage } from "./pages/AboutPage";
+import { TeamPage } from "./pages/TeamPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { ProvincePage } from "./pages/ProvincePage";
+import { VolunteerPage } from "./pages/VolunteerPage";
+import { DonatePage } from "./pages/DonatePage";
+import { ContactPage } from "./pages/ContactPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 function App() {
-  const { t } = useLang();
-
-  // Sync <title> and meta description with the active locale
-  useEffect(() => {
-    document.title = t.meta.title;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", t.meta.description);
-  }, [t]);
-
   return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <WhatWeDo />
-        <SDGs />
-        <Impact />
-        <Projects />
-        <TreePlanting />
-        <Volunteers />
-        <Partners />
-        <HowToParticipate />
-        <ContactForm />
-        <FinalCTA />
-      </main>
-      <Footer />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<RootLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="/sobre" element={<AboutPage />} />
+          <Route path="/equipa" element={<TeamPage />} />
+          <Route path="/projectos" element={<ProjectsPage />} />
+          <Route path="/projectos/:slug" element={<ProjectDetailPage />} />
+          <Route path="/provincias/:slug" element={<ProvincePage />} />
+          <Route path="/voluntariado" element={<VolunteerPage />} />
+          <Route path="/donativos" element={<DonatePage />} />
+          <Route path="/contactos" element={<ContactPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

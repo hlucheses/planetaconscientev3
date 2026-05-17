@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 import { PlaceholderImage } from "./PlaceholderImage";
@@ -54,12 +55,12 @@ export function Volunteers() {
               ))}
             </ul>
 
-            <a href="#contacto" className="btn-primary mt-8">
+            <Link to="/voluntariado" className="btn-primary mt-8">
               {t.volunteers.cta}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

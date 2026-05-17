@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 
 const SOCIALS = [
@@ -8,15 +9,16 @@ const SOCIALS = [
   { name: "Facebook",  href: "https://www.facebook.com/profile.php?id=61576903401987" },
 ];
 
-const NAV = [
-  { id: "inicio",      labelKey: "home" as const },
-  { id: "quem-somos",  labelKey: "about" as const },
-  { id: "fazemos",     labelKey: "whatWeDo" as const },
-  { id: "projectos",   labelKey: "projects" as const },
-  { id: "impacto",     labelKey: "impact" as const },
-  { id: "voluntarios", labelKey: "volunteers" as const },
-  { id: "parceiros",   labelKey: "partners" as const },
-  { id: "contacto",    labelKey: "contact" as const },
+type NavKey = "home" | "about" | "team" | "projects" | "volunteers" | "donate" | "contact";
+
+const NAV: { to: string; key: NavKey }[] = [
+  { to: "/",            key: "home" },
+  { to: "/sobre",       key: "about" },
+  { to: "/equipa",      key: "team" },
+  { to: "/projectos",   key: "projects" },
+  { to: "/voluntariado",key: "volunteers" },
+  { to: "/donativos",   key: "donate" },
+  { to: "/contactos",   key: "contact" },
 ];
 
 export function Footer() {
@@ -49,34 +51,39 @@ export function Footer() {
             </div>
             <ul className="mt-4 space-y-2 text-sm">
               {NAV.map((n) => (
-                <li key={n.id}>
-                  <a href={`#${n.id}`} className="text-cream/85 hover:text-mint">
-                    {t.nav[n.labelKey]}
-                  </a>
+                <li key={n.to}>
+                  <Link to={n.to} className="text-cream/85 hover:text-mint">
+                    {t.nav[n.key]}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact (no public email — use form) */}
           <div className="md:col-span-3">
             <div className="text-xs font-semibold uppercase tracking-wider text-cream/50">
               {t.footer.contactTitle}
             </div>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
+                <Link to="/contactos" className="text-cream/85 hover:text-mint">
+                  {t.nav.contact} →
+                </Link>
+              </li>
+              <li>
+                <Link to="/voluntariado" className="text-cream/85 hover:text-mint">
+                  {t.nav.volunteers} →
+                </Link>
+              </li>
+              <li>
+                <a href="tel:+244946273911" className="text-cream/85 hover:text-mint">
+                  +244 946 273 911
+                </a>
+              </li>
+              <li>
                 <a href="https://planetaconsciente.org" className="text-cream/85 hover:text-mint">
                   planetaconsciente.org
-                </a>
-              </li>
-              <li>
-                <a href="mailto:contacto@planetaconsciente.org" className="text-cream/85 hover:text-mint">
-                  contacto@planetaconsciente.org
-                </a>
-              </li>
-              <li>
-                <a href="mailto:helder@planetaconsciente.org" className="text-cream/85 hover:text-mint">
-                  helder@planetaconsciente.org
                 </a>
               </li>
             </ul>

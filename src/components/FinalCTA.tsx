@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 
@@ -29,21 +30,21 @@ export function FinalCTA() {
             <p className="mt-5 text-lg md:text-xl text-cream/85">{t.finalCta.subtitle}</p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <a
-                href="#projectos"
+              <Link
+                to="/voluntariado"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-cream px-6 py-3.5 text-sm font-semibold text-ink transition-all hover:bg-white hover:-translate-y-0.5"
               >
                 {t.finalCta.primary}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                   <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </a>
-              <a
-                href="#contacto"
+              </Link>
+              <Link
+                to="/donativos"
                 className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-cream/80 bg-transparent px-6 py-3 text-sm font-semibold text-cream transition-all hover:bg-cream hover:text-ink hover:-translate-y-0.5"
               >
                 {t.finalCta.secondary}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

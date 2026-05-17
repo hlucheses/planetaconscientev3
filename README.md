@@ -1,319 +1,283 @@
-# Planeta Consciente — Landing page bilingue
+# Planeta Consciente — Website v3
 
-> _Unidos por um planeta melhor · United for a better planet_
+Multi-page bilingual site (PT / EN) for the **Associação Planeta Consciente**, the youth-led environmental movement based in Luanda · Benguela · Lisboa.
 
-Landing page oficial da **Planeta Consciente**, organização ambiental jovem com presença em Luanda, Benguela e Lisboa. Bilingue (PT/EN), com formulário de contacto integrado em AWS Lambda + Amazon SES, pronta para deploy no Amazon Amplify.
-
----
-
-## Sumário
-
-1. [Stack](#stack)
-2. [Estrutura de pastas](#estrutura-de-pastas)
-3. [Correr localmente](#correr-localmente)
-4. [Build de produção](#build-de-produção)
-5. [Publicar no GitHub](#publicar-no-github)
-6. [Ligar ao Amazon Amplify](#ligar-ao-amazon-amplify)
-7. [Variáveis de ambiente](#variáveis-de-ambiente)
-8. [Backend — Lambda + SES](#backend--lambda--ses)
-9. [Substituir imagens placeholder](#substituir-imagens-placeholder)
-10. [Editar textos bilingues](#editar-textos-bilingues)
-11. [Alterar links das redes sociais](#alterar-links-das-redes-sociais)
-12. [Testar o formulário](#testar-o-formulário)
-13. [Erros comuns](#erros-comuns)
-14. [Próximos passos recomendados](#próximos-passos-recomendados)
+**Stack:** Vite 5 · React 18 · TypeScript · Tailwind CSS 3 · React Router 6 · AWS Lambda + Amazon SES · Amazon Amplify hosting.
 
 ---
 
-## Stack
+## What's new in v3
 
-| Camada       | Escolha                              | Porquê |
-|--------------|--------------------------------------|--------|
-| Bundler      | **Vite 5**                           | Build extremamente rápido, output estático, ideal para Amplify. |
-| UI           | **React 18 + TypeScript**            | Standard moderno, ergonomia para equipas pequenas. |
-| Styling      | **Tailwind CSS 3**                   | Manutenção rápida, sem CSS órfão, paleta da marca em `tailwind.config.js`. |
-| i18n         | Context API custom (`LanguageContext.tsx`) | Zero dependências extra; dois ficheiros `pt.ts` / `en.ts`. |
-| Animações    | CSS + IntersectionObserver custom    | Sem libs pesadas; respeita `prefers-reduced-motion`. |
-| Backend form | **AWS Lambda** (Node.js 20, `@aws-sdk/client-ses`) + **Amazon SES** | Serverless, baixo custo, alinhado com o ecosistema Amplify. |
-| Hosting      | **Amazon Amplify** (SPA estática)    | Pedido do cliente; deploy contínuo via GitHub. |
-
-Tudo escolhido para ser **leve, fácil de manter e barato**.
+| Area | Change |
+|---|---|
+| Architecture | Single-page → **multi-page** with React Router (10 routes) |
+| Menu | Slimmed to 5 items: *Início · Sobre · Projectos · Voluntariado · Donativos* |
+| About page | New dedicated page with mission, vision, values, objectives, areas |
+| Team page | Founders + visual organisation chart + advisory council |
+| Province pages | One page per location (Luanda, Benguela, Lisboa) |
+| Project pages | One detail page per project (role, partners, timeline, gallery) |
+| Volunteer page | Dedicated application form with structured fields |
+| Donate page | IBAN with copy-to-clipboard + fundraising info |
+| SDGs | Added ODS 06 (Água e Saneamento) and 07 (Energia) |
+| Partners | Marquee replaced by clean logo placeholder grid |
+| Privacy | Public email removed from footer — contact only via form |
+| Lambda | Now routes by `form_type` (contact vs volunteer) to different inboxes |
 
 ---
 
-## Estrutura de pastas
+## Routes
 
 ```
-planeta-consciente/
-├── public/
-│   ├── favicon.svg
-│   └── images/
-│       ├── README.md            ← lista os nomes de ficheiro esperados
-│       └── partners/
-├── src/
-│   ├── components/              ← Hero, About, Projects, Form, etc.
-│   ├── contexts/
-│   │   └── LanguageContext.tsx  ← detecção + persistência de idioma
-│   ├── hooks/
-│   │   └── useReveal.ts         ← scroll-reveal animations
-│   ├── i18n/
-│   │   ├── pt.ts                ← copy completa em português
-│   │   └── en.ts                ← copy completa em inglês
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── lambda/
-│   ├── contact-handler.mjs      ← handler AWS Lambda
-│   ├── package.json
-│   └── README.md                ← deploy passo-a-passo
-├── amplify.yml                  ← build settings do Amplify
-├── tailwind.config.js
-├── vite.config.ts
-├── tsconfig.json
-├── .env.example
+/                       Home (curated sections)
+/sobre                  About (institutional)
+/equipa                 Team & organisation chart
+/projectos              Projects index
+/projectos/:slug        Project detail (ekoar, angola-verde, …)
+/provincias/:slug       Province detail (luanda, benguela, lisboa)
+/voluntariado           Volunteer application form
+/donativos              Donate (IBAN + info)
+/contactos              General contact form
+*                       404
+```
+
+---
+
+## ⚠️ Critical: SPA rewrite in Amplify
+
+Because this is a single-page app with client-side routing, **you must add a rewrite rule in the Amplify Console**, otherwise refreshing `/sobre` (or any non-root URL) will return a 404.
+
+### How to add it
+
+1. AWS Amplify Console → your app → left sidebar → **Rewrites and redirects**
+2. **Add rule** → fill in:
+   - **Source address:** `</^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|webp|webm|mp4|mp3|otf|eot)$)([^.]+$)/>`
+   - **Target address:** `/index.html`
+   - **Type:** `200 (Rewrite)`
+3. **Save**.
+
+That regex serves `index.html` for any path that isn't a real static asset. It's the standard pattern for SPAs on Amplify. **Without it, the deploy works but inner pages 404 on refresh.**
+
+---
+
+## Local development
+
+```bash
+npm install
+npm run dev   # http://localhost:5173
+npm run build # production build into dist/
+```
+
+---
+
+## Deploy on Amazon Amplify
+
+### 1. Push the repo
+
+```bash
+git init && git add . && git commit -m "v3"
+git remote add origin git@github.com:<you>/<repo>.git
+git push -u origin main
+```
+
+### 2. Verify a sender in Amazon SES (region: `eu-west-1`)
+
+Console → SES → **Verified identities** → Create identity → Email → `planetaconscienteao@gmail.com`. Click the link in the inbox.
+
+> SES sandbox: as long as `TO_EMAIL` and `TO_EMAIL_VOLUNTEERS` are themselves verified identities, the form will work for *any* visitor in sandbox — because SES rejects sandbox sends *to* unverified addresses, but the destination is fixed and verified.
+
+### 3. Create the Lambda function
+
+Console → Lambda → **Create function** → Node.js 20.x, name `planeta-consciente-forms`.
+
+- **IAM role**: add an inline policy allowing `ses:SendEmail` on `*`.
+- **Code**: zip the `lambda/` folder after running `npm install` inside it, upload.
+- **Handler**: `contact-handler.handler`
+- **Environment variables**:
+
+```
+FROM_EMAIL           = planetaconscienteao@gmail.com
+TO_EMAIL             = planetaconscienteao@gmail.com   # contact form destination
+TO_EMAIL_VOLUNTEERS  = planetaconscienteao@gmail.com   # volunteer applications (optional, falls back to TO_EMAIL)
+REPLY_TO             = planetaconscienteao@gmail.com
+ALLOWED_ORIGINS      = https://main.<your-app-id>.amplifyapp.com,https://planetaconsciente.org
+```
+
+- **Function URL**: create with `Auth: NONE`, CORS allowing `POST, OPTIONS` from the Amplify origin.
+- Copy the Function URL — you need it for the next step.
+
+### 4. Deploy on Amplify
+
+Amplify Console → **New app → Host web app** → connect the GitHub repo → branch `main`.
+
+Add **environment variable** in *App settings → Environment variables*:
+
+```
+VITE_CONTACT_ENDPOINT = https://xxxxx.lambda-url.eu-west-1.on.aws/
+```
+
+Trigger the build. Once it goes green, **add the SPA rewrite rule above**. Then test by visiting `/sobre` directly.
+
+### 5. Custom domain
+
+*Domain management → Add domain → `planetaconsciente.org`*. Amplify will give DNS records; add them at your registrar. Wait for the green check, then update Lambda `ALLOWED_ORIGINS` to include `https://planetaconsciente.org`.
+
+---
+
+## Form payloads
+
+Both forms POST JSON to `VITE_CONTACT_ENDPOINT`. The Lambda discriminates by `form_type`.
+
+### Contact (`form_type: "contact"`)
+
+```json
+{
+  "form_type": "contact",
+  "name": "...",
+  "email": "...",
+  "phone": "...",
+  "org": "...",
+  "interest": "...",
+  "message": "...",
+  "locale": "pt"
+}
+```
+
+### Volunteer (`form_type: "volunteer"`)
+
+```json
+{
+  "form_type": "volunteer",
+  "fullName": "...",
+  "email": "...",
+  "phone": "...",
+  "birthDate": "...",
+  "city": "Luanda",
+  "occupation": "...",
+  "areas": ["Educação ambiental", "Plantio de árvores"],
+  "availability": "...",
+  "experience": "...",
+  "motivation": "...",
+  "howFound": "Instagram",
+  "locale": "pt"
+}
+```
+
+Both have a `website` honeypot field that, if filled, silently 200s without sending email.
+
+---
+
+## Images
+
+Drop images into `public/images/` and `public/images/projects/<slug>/`. Components fall back to gradient placeholders when files are missing — you can deploy with placeholders and replace them later without rebuilding code.
+
+### Expected filenames
+
+```
+public/images/
+├── hero-community.jpg            (Hero, 4:5 portrait)
+├── about-community.jpg           (About section, 5:4 landscape)
+├── tree-planting.jpg             (TreePlanting section, square)
+├── volunteers-1.jpg              (Volunteers section, 3:4)
+├── volunteers-2.jpg              (Volunteers section, 3:4)
+├── og-cover.jpg                  (Social share, 1200×630)
+├── ekoar.jpg                     (Project card, 4:3)
+├── angola-verde.jpg              (Project card, 4:3)
+├── gca-youth.jpg                 (Project card, 4:3)
+├── esta-tudo-conectado.jpg       (Project card, 4:3)
+├── arborizacao-luanda.jpg        (Project card, 4:3)
+├── greentalks.jpg                (Project card, 4:3)
+├── provinces/luanda.jpg          (Province page hero, 5:4)
+├── provinces/benguela.jpg
+├── provinces/lisboa.jpg
+└── projects/<slug>/hero.jpg      (Project detail hero, 21:9)
+└── projects/<slug>/1.jpg ... 5.jpg  (Project gallery placeholders)
+```
+
+### Partner logos (optional upgrade)
+
+Currently `src/components/Partners.tsx` renders text-based placeholders. To use real logos, drop `partners/<slug>.svg` (or PNG) in `public/images/` and set the `logo` field on the matching entry in the `PARTNERS` array inside the component:
+
+```ts
+{ name: "People In Need", slug: "pin", logo: "/images/partners/pin.svg" },
+```
+
+---
+
+## File map
+
+```
+src/
+├── App.tsx                     React Router routes
+├── main.tsx
+├── index.css                   Tailwind + custom utilities
+├── vite-env.d.ts
+├── contexts/
+│   └── LanguageContext.tsx     PT/EN with localStorage persistence
+├── i18n/
+│   ├── pt.ts                   All Portuguese copy
+│   └── en.ts                   All English copy (typed against pt)
+├── hooks/
+│   └── useReveal.ts            Scroll-triggered reveal animations
+├── layout/
+│   └── RootLayout.tsx          Wraps Navbar + <Outlet /> + Footer
+├── pages/
+│   ├── HomePage.tsx
+│   ├── AboutPage.tsx
+│   ├── TeamPage.tsx
+│   ├── ProjectsPage.tsx
+│   ├── ProjectDetailPage.tsx
+│   ├── ProvincePage.tsx
+│   ├── VolunteerPage.tsx
+│   ├── DonatePage.tsx
+│   ├── ContactPage.tsx
+│   └── NotFoundPage.tsx
+└── components/
+    ├── Navbar.tsx              5-item menu, mobile drawer, active states
+    ├── Footer.tsx              No public email, router links
+    ├── LanguageToggle.tsx
+    ├── Hero.tsx
+    ├── About.tsx               Province links
+    ├── WhatWeDo.tsx
+    ├── SDGs.tsx                8 ODS with official UN colours
+    ├── Impact.tsx
+    ├── Projects.tsx            Featured mode for Home, full list otherwise
+    ├── TreePlanting.tsx
+    ├── Volunteers.tsx
+    ├── Partners.tsx            Logo placeholder grid (swap to real logos)
+    ├── HowToParticipate.tsx
+    ├── ContactForm.tsx         form_type=contact
+    ├── VolunteerForm.tsx       form_type=volunteer
+    ├── FinalCTA.tsx
+    ├── PageHeader.tsx          Reusable inner-page hero
+    ├── TeamCard.tsx            Profile card with initials fallback
+    ├── OrgChart.tsx            Visual organisation chart
+    ├── ProjectGallery.tsx      6-slot gallery for project pages
+    └── PlaceholderImage.tsx    Branded gradient fallback
+
+lambda/
+├── contact-handler.mjs         Node 20, form_type routing, CORS, honeypot
+├── package.json
 └── README.md
 ```
 
 ---
 
-## Correr localmente
+## Common deployment errors
 
-```bash
-# 1. Instalar dependências
-npm install
-
-# 2. (opcional) configurar endpoint do formulário
-cp .env.example .env
-# Edita .env e cola o URL da Function Lambda — sem isto o form mostra sucesso simulado em dev.
-
-# 3. Arrancar o dev server
-npm run dev
-```
-
-A app abre em `http://localhost:5173`.
-
-> O `npm run dev` faz hot-reload de tudo (textos PT/EN, componentes, Tailwind).
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `/sobre` 404 on refresh | Missing SPA rewrite | Add the rewrite rule above |
+| `npm ci` fails on Amplify | Missing `package-lock.json` | Commit the lock file |
+| Form submits but no email | SES sandbox + `TO_EMAIL` not verified | Verify the destination email in SES |
+| `MessageRejected` in Lambda logs | `FROM_EMAIL` not verified | Verify the sender in SES |
+| CORS error in browser | `ALLOWED_ORIGINS` doesn't match | Set Lambda env var and Function URL CORS to your real domain |
+| Form silently accepts but no email | Honeypot triggered or browser autofilled it | Inspect submitted JSON — `website` should always be empty |
 
 ---
 
-## Build de produção
-
-```bash
-npm run build      # gera /dist
-npm run preview    # serve /dist localmente para inspecção
-```
-
-O Amplify executa exactamente estes comandos — definidos em `amplify.yml`.
-
----
-
-## Publicar no GitHub
-
-```bash
-git init
-git add .
-git commit -m "feat: landing page bilingue Planeta Consciente"
-git branch -M main
-git remote add origin git@github.com:<organização>/<repositório>.git
-git push -u origin main
-```
-
----
-
-## Ligar ao Amazon Amplify
-
-1. Entra em [AWS Amplify Console](https://console.aws.amazon.com/amplify/).
-2. **Get started** → **Host a web app**.
-3. Selecciona **GitHub**, autoriza e escolhe o repositório.
-4. Branch: `main`.
-5. **Build settings** — o Amplify detecta automaticamente o `amplify.yml` deste repositório. Verifica que diz:
-   - Frontend build command: `npm run build`
-   - Output directory: `dist`
-6. **Environment variables** — adiciona:
-
-   | Nome                     | Valor                                         |
-   |--------------------------|-----------------------------------------------|
-   | `VITE_CONTACT_ENDPOINT`  | URL da Function Lambda (ver secção seguinte)  |
-
-7. **Save and deploy**.
-
-A primeira build demora ~1–2 minutos. A partir daí, cada `git push` para `main` redeploya automaticamente.
-
-### Domínio próprio
-
-- **Domain management** → **Add domain** → `planetaconsciente.org`.
-- Amplify gera os registos DNS (CNAME/ALIAS) que tens de adicionar no teu provedor (Cloudflare, Route 53, etc.).
-- O certificado HTTPS é emitido automaticamente pelo ACM.
-
----
-
-## Variáveis de ambiente
-
-### Frontend (Amplify ou `.env` local)
-
-| Variável                  | Obrigatória | Descrição                                                          |
-|---------------------------|:-:|--------------------------------------------------------------------|
-| `VITE_CONTACT_ENDPOINT`   | ✓ (em prod) | URL público da Lambda (Function URL ou API Gateway).               |
-
-> **Importante:** variáveis com prefixo `VITE_` são embebidas no bundle frontend — **nunca** coloques aqui chaves AWS.
-
-### Backend (Lambda)
-
-Definidas no console da Lambda. Lista completa em [`lambda/README.md`](./lambda/README.md):
-
-- `FROM_EMAIL`
-- `TO_EMAIL`
-- `REPLY_TO` (opcional)
-- `ALLOWED_ORIGINS`
-
----
-
-## Backend — Lambda + SES
-
-Passo-a-passo detalhado em [`lambda/README.md`](./lambda/README.md). Resumo:
-
-### 1. Verificar email/domínio no SES
-
-1. AWS Console → **Amazon SES** → escolhe a região (recomendação: a mesma da Lambda; ex. `eu-west-1`).
-2. **Identities** → **Create identity**.
-3. Opção A — **Email address**: cola `no-reply@planetaconsciente.org`, confirma no inbox.
-   Opção B — **Domain**: cola `planetaconsciente.org`, adiciona os 3 registos CNAME DKIM no DNS.
-4. (Produção) Pede sair do **sandbox**: SES → **Account dashboard** → **Request production access**. Demora ~24h.
-
-### 2. Criar a Lambda
-
-Segue `lambda/README.md`. Em resumo:
-- Runtime Node.js 20.x, arm64, 256 MB, timeout 10 s.
-- Upload do `function.zip` com `contact-handler.mjs` + `node_modules`.
-- IAM: permite `ses:SendEmail` na identidade verificada.
-- Activa a **Function URL** (auth `NONE`, CORS configurado).
-- Copia o URL → cola em `VITE_CONTACT_ENDPOINT`.
-
-### 3. Testar end-to-end
-
-1. `npm run dev` (com `.env` apontando para a Function URL).
-2. Preenche o form.
-3. Verifica que chega email a `planetaconscienteao@gmail.com`.
-4. Verifica logs em CloudWatch caso algo falhe.
-
----
-
-## Substituir imagens placeholder
-
-Os placeholders são gradientes em SVG com identidade visual. Para substituir por fotografias reais, basta colocar ficheiros em `public/images/` com os nomes exactos:
-
-| Secção             | Ficheiro                  | Proporção |
-|--------------------|---------------------------|-----------|
-| Hero               | `hero-community.jpg`      | 4:5       |
-| Quem somos         | `about-community.jpg`     | 5:4       |
-| Projecto EKOAR     | `ekoar.jpg`               | 4:3       |
-| Projecto Angola Verde | `angola-verde.jpg`     | 4:3       |
-| Projecto GCA       | `gca-youth.jpg`           | 4:3       |
-| Plantio            | `tree-planting.jpg`       | 1:1       |
-| Voluntários        | `volunteers-1.jpg`, `volunteers-2.jpg` | 3:4 |
-| Open Graph (social) | `og-cover.jpg`           | 1200×630  |
-
-> Lista completa também em [`public/images/README.md`](./public/images/README.md).
-
-**Recomendações de optimização:**
-- Comprime com [Squoosh](https://squoosh.app) ou [TinyPNG](https://tinypng.com).
-- Largura máxima 1600px para hero, 1200px para cards.
-- Considera servir WebP no futuro — basta trocar a extensão e o `src`.
-
----
-
-## Editar textos bilingues
-
-Todo o copy está em dois ficheiros:
-
-- `src/i18n/pt.ts` — Português
-- `src/i18n/en.ts` — Inglês
-
-As duas estruturas têm de bater certo (o TypeScript chama atenção se faltar uma chave). Para mudar um texto:
-
-```ts
-// src/i18n/pt.ts
-hero: {
-  ...
-  titleHighlight: "planeta melhor.",   // ← edita aqui
-  ...
-}
-```
-
-Guarda o ficheiro — o Vite faz hot-reload instantâneo.
-
-### Acrescentar uma língua nova (futuro)
-
-1. Cria `src/i18n/fr.ts` espelhando a estrutura de `pt.ts`.
-2. Em `LanguageContext.tsx`, adiciona `"fr"` ao tipo `Locale` e à lógica de detecção.
-3. Em `LanguageToggle.tsx`, adiciona o novo botão.
-
----
-
-## Alterar links das redes sociais
-
-Edita o array `SOCIALS` em `src/components/Footer.tsx`:
-
-```ts
-const SOCIALS = [
-  { name: "Instagram", href: "https://www.instagram.com/planeta_consciente.ao/" },
-  { name: "LinkedIn",  href: "..." },
-  // ...
-];
-```
-
----
-
-## Testar o formulário
-
-**Localmente (sem Lambda):** se `VITE_CONTACT_ENDPOINT` não estiver definida, o formulário simula sucesso após ~700ms e imprime o payload no console — útil para testar o UX.
-
-**Localmente (com Lambda):** define `VITE_CONTACT_ENDPOINT` em `.env`, faz `npm run dev`, submete e verifica:
-- Mensagem de sucesso aparece no UI.
-- Email recebido em `planetaconscienteao@gmail.com`.
-- Sem erros no DevTools → Network.
-
-**Em produção:** mesmo fluxo, garantindo que o domínio está em `ALLOWED_ORIGINS` da Lambda.
-
-**Testar a protecção anti-spam:** abre DevTools, preenche manualmente o input `name="website"` no DOM, submete. O frontend trata como sucesso e o backend descarta — não chega email.
-
----
-
-## Erros comuns
-
-| Sintoma                                                       | Causa provável                                                       | Solução |
-|---------------------------------------------------------------|----------------------------------------------------------------------|---------|
-| Form mostra erro a submeter, console mostra `CORS`            | Origin do site não está em `ALLOWED_ORIGINS` da Lambda               | Acrescenta o domínio nas env vars da Lambda e redeploya. |
-| `500 ses_failed` no Network                                   | SES em sandbox ou identidade não verificada                          | Verifica o sender em SES; pede production access. |
-| Build no Amplify falha em `npm ci`                            | Versão de Node incompatível                                          | Amplify Console → App settings → Build image settings → Node 20. |
-| Imagens não aparecem mas o site funciona                      | Filenames diferentes do esperado                                     | Renomeia para o exacto da tabela acima. |
-| Idioma sempre PT mesmo com browser em EN                      | `localStorage` tem valor antigo                                      | DevTools → Application → Local Storage → apaga `pc-locale`. |
-| Tudo branco em produção                                       | Path de assets errado                                                | Confirma que `vite.config.ts` não tem `base` customizada errada. |
-
----
-
-## Próximos passos recomendados
-
-1. **Imagens reais** — substituir placeholders por fotografias da Planeta Consciente.
-2. **OG image** — desenhar `og-cover.jpg` (1200×630) para partilhas nas redes.
-3. **Domínio + HTTPS** — apontar `planetaconsciente.org` para Amplify.
-4. **SES production access** — sair da sandbox para conseguir enviar para qualquer email.
-5. **Analytics** — adicionar [Plausible](https://plausible.io) ou GA4 (privacidade-friendly recomendado).
-6. **Newsletter** — secção opcional ligada a Mailchimp/MailerLite.
-7. **Página `/projectos/[slug]`** — quando quiserem expandir cada projecto em página própria, mover para Next.js ou Astro mantendo a estrutura de componentes.
-8. **Acessibilidade** — fazer auditoria com axe-core e Lighthouse (objectivo: 100/100).
-9. **i18n SEO** — gerar `sitemap.xml` e `hreflang` quando o site crescer.
-10. **CMS leve** — se a equipa quiser editar copy sem tocar em código, considerar Sanity ou Tina CMS.
-
----
-
-## Contactos institucionais
-
-- 🌍 [planetaconsciente.org](https://planetaconsciente.org)
-- ✉️ contacto@planetaconsciente.org
-- ✉️ helder@planetaconsciente.org
-- 📱 [Instagram](https://www.instagram.com/planeta_consciente.ao/) · [LinkedIn](https://www.linkedin.com/company/planeta-consciente) · [TikTok](https://www.tiktok.com/@placonscienteao) · [YouTube](https://www.youtube.com/@PlanetaConscienteAO) · [Facebook](https://www.facebook.com/profile.php?id=61576903401987)
-
----
-
-> Construído com energia jovem em **Luanda · Benguela · Lisboa**.
+## Contact
+
+- Site: planetaconsciente.org
+- Tel: +244 946 273 911
+- Instagram: @planeta_consciente.ao
+- LinkedIn: planeta-consciente

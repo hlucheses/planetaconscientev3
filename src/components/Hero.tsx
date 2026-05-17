@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 import { PlaceholderImage } from "./PlaceholderImage";
 
@@ -46,13 +47,13 @@ export function Hero() {
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3 animate-fade-up [animation-delay:.25s]">
-              <a href="#projectos" className="btn-primary">
+              <Link to="/projectos" className="btn-primary">
                 {t.hero.ctaPrimary}
                 <Arrow />
-              </a>
-              <a href="#voluntarios" className="btn-secondary">
+              </Link>
+              <Link to="/voluntariado" className="btn-secondary">
                 {t.hero.ctaSecondary}
-              </a>
+              </Link>
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-ink/70 animate-fade-up [animation-delay:.35s]">

@@ -1,6 +1,45 @@
 import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 
+/**
+ * Partners grid — slots designed to receive logo SVG/PNG files later.
+ * Each slot shows a placeholder with the partner name; when a real logo
+ * is dropped in `/public/images/partners/<slug>.svg` (or .png) it can
+ * replace the placeholder by changing the `logo` field below.
+ */
+
+type Partner = {
+  name: string;
+  slug: string;
+  /** Optional path to logo file. When present, used in place of the initials block. */
+  logo?: string;
+};
+
+const PARTNERS: Partner[] = [
+  { name: "People In Need",                          slug: "pin" },
+  { name: "Global Center on Adaptation",             slug: "gca" },
+  { name: "Administração Municipal de Talatona",     slug: "talatona" },
+  { name: "Gabinete Provincial do Ambiente (GPL)",   slug: "gpl" },
+  { name: "Befco Indústrias · Água Perla",           slug: "befco" },
+  { name: "Nervi Indústrias de Automação",           slug: "nervi" },
+  { name: "Luanda Shapers",                          slug: "luanda-shapers" },
+  { name: "Rotary Club de Luanda",                   slug: "rotary" },
+  { name: "DHL Global",                              slug: "dhl" },
+  { name: "Luanda International Academy",            slug: "lia" },
+  { name: "Society of Petroleum Engineers",          slug: "spe" },
+  { name: "Governo de Angola",                       slug: "gov-ao" },
+];
+
+function initials(name: string) {
+  return name
+    .replace(/[·()]/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .slice(0, 2)
+    .join("");
+}
+
 export function Partners() {
   const { t } = useLang();
   const ref = useReveal();
@@ -16,24 +55,37 @@ export function Partners() {
           <p className="mt-4 text-lg text-ink/75">{t.partners.subtitle}</p>
         </div>
 
-        {/* Marquee - infinite horizontal scroll */}
-        <div className="mt-12 overflow-hidden">
-          <div className="marquee-track gap-8 py-4">
-            {[...t.partners.list, ...t.partners.list].map((p, i) => (
-              <div
-                key={`${p}-${i}`}
-                className="flex shrink-0 items-center gap-3 rounded-2xl border border-ink/10 bg-white px-6 py-4 shadow-sm"
-              >
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-mint text-forest font-display font-bold">
-                  {p.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                </span>
-                <span className="font-display text-base font-semibold text-ink whitespace-nowrap">
-                  {p}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Logo placeholder grid */}
+        <ul className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {PARTNERS.map((p) => (
+            <li
+              key={p.slug}
+              className="group relative flex aspect-[5/3] items-center justify-center overflow-hidden rounded-2xl border border-ink/10 bg-white transition-all hover:shadow-soft"
+              title={p.name}
+            >
+              {p.logo ? (
+                <img
+                  src={p.logo}
+                  alt={p.name}
+                  className="max-h-[60%] max-w-[70%] object-contain transition-transform group-hover:scale-105"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 px-4 text-center">
+                  <span
+                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-mint/70 font-display text-base font-bold text-forest"
+                    aria-hidden
+                  >
+                    {initials(p.name)}
+                  </span>
+                  <span className="line-clamp-2 text-[11px] font-medium leading-tight text-ink/65">
+                    {p.name}
+                  </span>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
 
         {/* Collaboration areas */}
         <div className="mt-16 rounded-3xl border border-ink/10 bg-white p-8 md:p-10">

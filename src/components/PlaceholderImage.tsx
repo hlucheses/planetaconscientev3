@@ -10,7 +10,7 @@ interface Props {
   /** Short label shown inside placeholder. */
   label?: string;
   /** Optional tone for the placeholder background. */
-  tone?: "forest" | "teal" | "mint" | "terracotta" | "ink";
+  tone?: "forest" | "teal" | "mint" | "terracotta" | "ink" | "leaf" | "sun";
 }
 
 const toneMap = {
@@ -19,6 +19,8 @@ const toneMap = {
   mint:       "from-mint via-leaf/40 to-teal/40",
   terracotta: "from-terracotta via-clay to-ink",
   ink:        "from-ink via-forest to-leaf",
+  leaf:       "from-leaf via-teal to-forest",
+  sun:        "from-sun via-terracotta to-clay",
 } as const;
 
 /**

@@ -2,8 +2,11 @@ import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 
 // Official UN SDG accent colors for these six
+// Official UN SDG accent colors
 const SDG_COLORS: Record<string, string> = {
   "04": "#C5192D",
+  "06": "#26BDE2",
+  "07": "#FCC30B",
   "11": "#FD9D24",
   "12": "#BF8B2E",
   "13": "#3F7E44",

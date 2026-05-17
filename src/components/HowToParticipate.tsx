@@ -1,9 +1,13 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 
 export function HowToParticipate() {
   const { t } = useLang();
   const ref = useReveal();
+
+  // First item (Jovens voluntários) → /voluntariado, others → /contactos
+  const targetFor = (i: number) => (i === 0 ? "/voluntariado" : "/contactos");
 
   return (
     <section className="relative py-20 md:py-28">
@@ -31,13 +35,13 @@ export function HowToParticipate() {
               <p className="mt-3 text-sm leading-relaxed text-ink/70 group-hover:text-cream/80">
                 {it.msg}
               </p>
-              <a
-                href="#contacto"
+              <Link
+                to={targetFor(i)}
                 className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-forest group-hover:text-mint"
               >
                 {it.action}
                 <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

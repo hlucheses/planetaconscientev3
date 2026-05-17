@@ -1,6 +1,14 @@
+import { Link } from "react-router-dom";
 import { useLang } from "../contexts/LanguageContext";
 import { useReveal } from "../hooks/useReveal";
 import { PlaceholderImage } from "./PlaceholderImage";
+
+const CITY_SLUGS: Record<string, "luanda" | "benguela" | "lisboa"> = {
+  Luanda:   "luanda",
+  Benguela: "benguela",
+  Lisboa:   "lisboa",
+  Lisbon:   "lisboa",
+};
 
 export function About() {
   const { t } = useLang();
@@ -48,14 +56,34 @@ export function About() {
               ))}
             </div>
 
+            <Link
+              to="/sobre"
+              className="link mt-6 inline-flex items-center gap-2 text-sm"
+            >
+              {t.about.readMore}
+              <span aria-hidden>→</span>
+            </Link>
+
             {/* Locations */}
             <div className="mt-10 grid grid-cols-3 gap-4 border-t border-ink/10 pt-8">
-              {t.hero.locations.map((city) => (
-                <div key={city}>
-                  <div className="font-display text-2xl font-bold text-ink">{city}</div>
-                  <div className="mt-1 h-1 w-8 rounded-full bg-terracotta" />
-                </div>
-              ))}
+              {t.hero.locations.map((city) => {
+                const slug = CITY_SLUGS[city];
+                const content = (
+                  <>
+                    <div className="font-display text-2xl font-bold text-ink group-hover:text-forest transition-colors">
+                      {city}
+                    </div>
+                    <div className="mt-1 h-1 w-8 rounded-full bg-terracotta transition-all group-hover:w-14" />
+                  </>
+                );
+                return slug ? (
+                  <Link key={city} to={`/provincias/${slug}`} className="group block">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={city}>{content}</div>
+                );
+              })}
             </div>
           </div>
         </div>
